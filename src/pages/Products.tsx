@@ -127,7 +127,7 @@ const Products = () => {
         {/* Productos o mensaje vacío */}
         {filtered.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
-            <Package className="h-12 w-12 mx-auto mb-4 opacity-40" />
+            <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-40" />
             <p className="text-lg font-medium">No hay ningún producto que coincida con tu búsqueda</p>
             <p className="text-sm mt-1">Intenta con otro término o cambia el filtro</p>
           </div>
