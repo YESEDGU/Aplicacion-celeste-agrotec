@@ -77,7 +77,7 @@ const Login = () => {
                 Iniciar Sesión
               </h1>
               <p className="text-muted-foreground text-sm mt-1">
-                <span className="text-muted-foreground/60 text-xs">CAC-001</span> · Ingresa tus credenciales para acceder
+                Ingresa tus credenciales para acceder
               </p>
             </div>
           </CardHeader>
