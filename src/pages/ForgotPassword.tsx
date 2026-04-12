@@ -54,7 +54,7 @@ const ForgotPassword = () => {
               Recuperar Contraseña
             </h1>
             <p className="text-muted-foreground text-sm mt-1">
-              <span className="text-muted-foreground/60 text-xs">CAC-001 · Esc. 2</span> · Ingresa tu correo para recibir un enlace de recuperación
+              Ingresa tu correo para recibir un enlace de recuperación
             </p>
           </div>
         </CardHeader>
