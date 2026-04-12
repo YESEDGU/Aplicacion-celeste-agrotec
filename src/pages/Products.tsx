@@ -246,7 +246,4 @@ const Products = () => {
   );
 };
 
-// Needed for the import in the component
-const Package = () => null;
-
 export default Products;
