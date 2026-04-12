@@ -101,9 +101,6 @@ const ForgotPassword = () => {
             </form>
           )}
 
-          <div className="bg-muted rounded-lg p-3 text-xs text-muted-foreground">
-            <p>Prueba con <code className="bg-background px-1 rounded">noexiste@test.com</code> para ver el error de usuario no encontrado.</p>
-          </div>
 
           <Link to="/" className="flex items-center justify-center gap-2 text-sm text-secondary hover:underline">
             <ArrowLeft className="h-4 w-4" />
