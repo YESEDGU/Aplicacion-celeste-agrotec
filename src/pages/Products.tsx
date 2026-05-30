@@ -168,7 +168,7 @@ function ModalCheckout({ items, onCerrar, onPedidoCreado }: {
       valor: total,
       estado: 'pendiente',
     })
-    if (errPago) console.error('Error pago:', errPago)
+    
 
     // 4. Descontar stock
     for (const item of items) {

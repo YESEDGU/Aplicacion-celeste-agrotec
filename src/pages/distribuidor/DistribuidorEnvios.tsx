@@ -220,9 +220,17 @@ export default function DistribuidorEnvios() {
 
     // Sincronizar estado del pedido
     await supabase.rpc('sincronizar_estado_pedido', {
-  p_envio_id: id,
-  p_estado_envio: estado,
-})
+      p_envio_id: id,
+      p_estado_envio: estado,
+    })
+
+    // Si se entrega, aprobar el pago
+  if (estado === 'entregado') {
+    const envio = envios.find(e => e.id === id)
+    if (envio?.pedidos?.id) {
+      await supabase.rpc('aprobar_pago_pedido', { p_pedido_id: envio.pedidos.id })
+    }
+  }
 
     await cargar()
   }
