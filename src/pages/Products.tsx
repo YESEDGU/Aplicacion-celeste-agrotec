@@ -162,12 +162,12 @@ function ModalCheckout({ items, onCerrar, onPedidoCreado }: {
     })
 
     // 4. Descontar stock
-  for (const item of items) {
-  await supabase
-    .from('productos')
-    .update({ stock: item.producto.stock - item.cantidad, fecha_actualiza: new Date().toISOString() })
-    .eq('id', item.producto.id)
-}
+    for (const item of items) {
+      await supabase.rpc('descontar_stock', {
+        p_producto_id: item.producto.id,
+        p_cantidad: item.cantidad,
+      })
+    }
 
     setGuardando(false)
     setExitoso(true)
