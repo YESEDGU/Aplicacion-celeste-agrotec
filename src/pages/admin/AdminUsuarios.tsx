@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { Loader2, Shield, User, Truck, Search, ToggleLeft, ToggleRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import type { Perfil } from '@/types/database'
+import { useAuth } from '@/context/AuthContext'
 
 const ROLES = [
   { id: 1, label: 'Administrador', color: 'bg-purple-100 text-purple-700', icon: <Shield className="w-3 h-3" /> },
@@ -28,6 +29,7 @@ export default function AdminUsuarios() {
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
   const [cambiando, setCambiando] = useState<string | null>(null)
+  const { perfil: perfilAdmin } = useAuth()
 
   const cargar = async () => {
     setLoading(true)
@@ -38,19 +40,44 @@ export default function AdminUsuarios() {
 
   useEffect(() => { cargar() }, [])
 
-  const cambiarRol = async (id: string, nuevoRol: number) => {
-    setCambiando(id)
-    await supabase.from('perfiles').update({ id_rol: nuevoRol }).eq('id', id)
-    await cargar()
-    setCambiando(null)
-  }
+const cambiarRol = async (id: string, nuevoRol: number) => {
+  setCambiando(id)
+  const usuario = usuarios.find(u => u.id === id)
 
-  const toggleActivo = async (perfil: Perfil) => {
-    setCambiando(perfil.id)
-    await supabase.from('perfiles').update({ activo: !perfil.activo }).eq('id', perfil.id)
-    await cargar()
-    setCambiando(null)
-  }
+  await supabase.from('perfiles').update({ id_rol: nuevoRol }).eq('id', id)
+
+  await supabase.rpc('registrar_auditoria', {
+    p_responsable: perfilAdmin?.usuario ?? 'Admin',
+    p_id_usuario: perfilAdmin?.id ?? null,
+    p_accion: 'modificar',
+    p_tabla: 'perfiles',
+    p_id_registro: null,
+    p_valor_anterior: { id_rol: usuario?.id_rol },
+    p_valor_nuevo: { id_rol: nuevoRol },
+  })
+
+  await cargar()
+  setCambiando(null)
+}
+
+const toggleActivo = async (perfil: Perfil) => {
+  setCambiando(perfil.id)
+
+  await supabase.from('perfiles').update({ activo: !perfil.activo }).eq('id', perfil.id)
+
+  await supabase.rpc('registrar_auditoria', {
+    p_responsable: perfilAdmin?.usuario ?? 'Admin',
+    p_id_usuario: perfilAdmin?.id ?? null,
+    p_accion: 'modificar',
+    p_tabla: 'perfiles',
+    p_id_registro: null,
+    p_valor_anterior: { activo: perfil.activo, usuario: perfil.usuario },
+    p_valor_nuevo: { activo: !perfil.activo, usuario: perfil.usuario },
+  })
+
+  await cargar()
+  setCambiando(null)
+}
 
   const filtrados = usuarios.filter(u =>
     busqueda === '' ||
