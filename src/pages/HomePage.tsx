@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar";
+
 import heroFarm from "@/assets/hero-farm.jpg";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -15,7 +15,7 @@ const features = [
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      
 
       {/* Hero */}
       <section className="relative h-[70vh] min-h-[500px] flex items-center overflow-hidden">

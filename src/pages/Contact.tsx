@@ -1,20 +1,21 @@
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Phone, Mail, MapPin, MessageCircle, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Phone, Mail, MapPin, MessageCircle, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { supabase } from '@/lib/supabase'
 
 // CAC-007: Contactos
 const Contact = () => {
   const [form, setForm] = useState({ nombre: "", correo: "", asunto: "", mensaje: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -28,13 +29,28 @@ const Contact = () => {
       return;
     }
 
+    setLoading(true);
+
+    const { error: errContacto } = await supabase.from('contactos').insert({
+      nombre: form.nombre.trim(),
+      correo: form.correo.trim().toLowerCase(),
+      asunto: form.asunto.trim(),
+      mensaje: form.mensaje.trim(),
+    });
+
+    setLoading(false);
+
+    if (errContacto) {
+      setError("No se pudo enviar el mensaje. Intenta de nuevo.");
+      return;
+    }
+
     setSuccess("Mensaje enviado exitosamente. Nos pondremos en contacto contigo pronto.");
     setForm({ nombre: "", correo: "", asunto: "", mensaje: "" });
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="container mx-auto px-4 py-12">
         <h1 className="font-heading text-3xl font-bold text-foreground mb-2">Contactos</h1>
         <p className="text-muted-foreground mb-10">
@@ -82,30 +98,58 @@ const Contact = () => {
                 </Alert>
               )}
               {success && (
-                <Alert className="border-success/30 bg-success/10">
-                  <CheckCircle2 className="h-4 w-4 text-success" />
-                  <AlertDescription className="text-success">{success}</AlertDescription>
+                <Alert className="border-green-200 bg-green-50">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700">{success}</AlertDescription>
                 </Alert>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>Nombre</Label>
-                  <Input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Tu nombre" className="h-11" />
+                  <Input
+                    value={form.nombre}
+                    onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                    placeholder="Tu nombre"
+                    className="h-11"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Correo electrónico</Label>
-                  <Input value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} placeholder="tucorreo@ejemplo.com" className="h-11" />
+                  <Input
+                    value={form.correo}
+                    onChange={(e) => setForm({ ...form, correo: e.target.value })}
+                    placeholder="tucorreo@ejemplo.com"
+                    className="h-11"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Asunto</Label>
-                  <Input value={form.asunto} onChange={(e) => setForm({ ...form, asunto: e.target.value })} placeholder="Asunto del mensaje" className="h-11" />
+                  <Input
+                    value={form.asunto}
+                    onChange={(e) => setForm({ ...form, asunto: e.target.value })}
+                    placeholder="Asunto del mensaje"
+                    className="h-11"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Mensaje</Label>
-                  <Textarea value={form.mensaje} onChange={(e) => setForm({ ...form, mensaje: e.target.value })} placeholder="Escribe tu mensaje..." rows={4} />
+                  <Textarea
+                    value={form.mensaje}
+                    onChange={(e) => setForm({ ...form, mensaje: e.target.value })}
+                    placeholder="Escribe tu mensaje..."
+                    rows={4}
+                  />
                 </div>
-                <Button type="submit" className="w-full celeste-gradient font-semibold h-11">Enviar</Button>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full celeste-gradient font-semibold h-11"
+                >
+                  {loading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...</>
+                  ) : 'Enviar'}
+                </Button>
               </form>
             </CardContent>
           </Card>

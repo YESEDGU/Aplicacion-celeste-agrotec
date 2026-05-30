@@ -1,93 +1,121 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Home, Package, Users, Phone, User, LogOut, Menu, X } from "lucide-react";
-import { useState } from "react";
-import Logo from "@/components/Logo";
+import { Link, useNavigate } from 'react-router-dom'
+import Logo from '@/components/Logo'
+import { NavLink } from '@/components/NavLink'
+import { useAuth } from '@/context/AuthContext'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { LogOut, User, Settings, Package, Truck } from 'lucide-react'
 
-// CAC-02: Menú superior con 4 opciones + Cerrar sesión
-const navItems = [
-  { label: "Inicio", path: "/inicio", icon: Home, id: "CAC-02.1" },
-  { label: "Productos", path: "/productos", icon: Package, id: "CAC-02.2" },
-  { label: "Trabaja con Nosotros", path: "/trabaja-con-nosotros", icon: Users, id: "CAC-02.3" },
-  { label: "Contactos", path: "/contactos", icon: Phone, id: "CAC-02.4" },
-];
+const navLinkClass = "px-3 py-2 rounded-md text-sm font-medium text-foreground hover:text-primary hover:bg-accent transition-colors"
+const navLinkActive = "text-primary bg-accent font-semibold"
 
 const Navbar = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { perfil, rolNombre, isAdmin, isDistribuidor, signOut } = useAuth()
+  const navigate = useNavigate()
 
-  // CAC-02 Escenario 5: Cerrar sesión
-  const handleLogout = () => {
-    navigate("/");
-  };
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/')
+  }
+
+  const iniciales = perfil?.usuario
+    ? perfil.usuario.slice(0, 2).toUpperCase()
+    : 'US'
+
+  const rolColor =
+    isAdmin ? 'bg-red-100 text-red-700' :
+    isDistribuidor ? 'bg-amber-100 text-amber-700' :
+    'bg-blue-100 text-blue-700'
 
   return (
-    <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border shadow-sm">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Logo size="sm" />
+    <nav className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-50">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <Link to="/inicio">
+          <Logo />
+        </Link>
 
-        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => {
-            const active = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path}>
-                <Button
-                  variant={active ? "default" : "ghost"}
-                  size="sm"
-                  className={active ? "celeste-gradient" : ""}
-                >
-                  <item.icon className="h-4 w-4 mr-1" />
-                  {item.label}
+          <NavLink to="/inicio" className={navLinkClass} activeClassName={navLinkActive}>
+            Inicio
+          </NavLink>
+          <NavLink to="/productos" className={navLinkClass} activeClassName={navLinkActive}>
+            Productos
+          </NavLink>
+          {isDistribuidor && (
+            <NavLink to="/distribuidor/envios" className={navLinkClass} activeClassName={navLinkActive}>
+            Mis Envíos
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink to="/admin" className={navLinkClass} activeClassName={navLinkActive}>
+              Panel Admin
+            </NavLink>
+          )}
+          <NavLink to="/trabaja-con-nosotros" className={navLinkClass} activeClassName={navLinkActive}>
+            Trabaja con Nosotros
+          </NavLink>
+          <NavLink to="/contactos" className={navLinkClass} activeClassName={navLinkActive}>
+            Contactos
+          </NavLink>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {perfil ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2 h-auto py-1 px-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="celeste-gradient text-primary-foreground text-xs font-bold">
+                      {iniciales}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden sm:flex flex-col items-start">
+                    <span className="text-sm font-medium text-foreground leading-tight">{perfil.usuario}</span>
+                    <span className={`text-xs px-1.5 rounded-full font-medium ${rolColor}`}>{rolNombre}</span>
+                  </div>
                 </Button>
-              </Link>
-            );
-          })}
-        </div>
-
-        <div className="hidden md:flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Cerrar Sesión
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Mobile toggle */}
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </div>
-
-      {/* Mobile nav */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card p-4 space-y-2 animate-in slide-in-from-top-2">
-          {navItems.map((item) => (
-            <Link key={item.path} to={item.path} onClick={() => setMobileOpen(false)}>
-              <Button variant={location.pathname === item.path ? "default" : "ghost"} className="w-full justify-start">
-                <item.icon className="h-4 w-4 mr-2" />
-                {item.label}
-              </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{perfil.usuario}</p>
+                  <p className="text-xs text-muted-foreground truncate">{perfil.correo}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/perfil')}>
+                  <User className="mr-2 h-4 w-4" /> Mi perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/mis-pedidos')}>
+                  <Package className="mr-2 h-4 w-4" /> Mis pedidos
+                </DropdownMenuItem>
+                {isDistribuidor && (
+                  <DropdownMenuItem onClick={() => navigate('/distribuidor/envios')}>
+                    <Truck className="mr-2 h-4 w-4" /> Mis envíos
+                  </DropdownMenuItem>
+                )}
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    <Settings className="mr-2 h-4 w-4" /> Panel Admin
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/">
+              <Button size="sm" className="celeste-gradient">Ingresar</Button>
             </Link>
-          ))}
-          <Button variant="ghost" className="w-full justify-start text-destructive" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Cerrar Sesión
-          </Button>
+          )}
         </div>
-      )}
+      </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
