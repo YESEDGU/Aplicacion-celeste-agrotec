@@ -161,6 +161,14 @@ function ModalCheckout({ items, onCerrar, onPedidoCreado }: {
       estado: 'preparando',
     })
 
+    // 3.5 Registrar el pago
+    await supabase.from('pagos').insert({
+      id_pedido: pedido.id,
+      metodo: metodoPago,
+      valor: total,
+      estado: metodoPago === 'efectivo' ? 'pendiente' : 'pendiente',
+    })
+
     // 4. Descontar stock
     for (const item of items) {
       const { data, error: errStock } = await supabase.rpc('descontar_stock', { p_producto_id: item.producto.id, p_cantidad: item.cantidad, }) 
