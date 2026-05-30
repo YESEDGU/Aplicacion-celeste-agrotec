@@ -163,12 +163,8 @@ function ModalCheckout({ items, onCerrar, onPedidoCreado }: {
 
     // 4. Descontar stock
     for (const item of items) {
-      console.log('Descontando stock:', item.producto.id, item.cantidad)
-      const result = await supabase.rpc('descontar_stock', {
-        p_producto_id: item.producto.id,
-        p_cantidad: item.cantidad,
-      })
-      console.log('Resultado stock:', result)
+      const { data, error: errStock } = await supabase.rpc('descontar_stock', { p_producto_id: item.producto.id, p_cantidad: item.cantidad, })
+      console.log('Stock result:', data, errStock, item.producto.id, item.cantidad)
     }
 
     setGuardando(false)
