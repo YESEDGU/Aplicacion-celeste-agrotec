@@ -137,6 +137,17 @@ function ModalCheckout({ items, onCerrar, onPedidoCreado }: {
       return
     }
 
+    // Registrar en auditoría
+    await supabase.rpc('registrar_auditoria', {
+      p_responsable: perfil?.usuario ?? 'Cliente',
+      p_id_usuario: perfil?.id ?? null,
+      p_accion: 'crear',
+      p_tabla: 'pedidos',
+      p_id_registro: pedido.id,
+      p_valor_anterior: null,
+      p_valor_nuevo: { valor_total: total, metodo_pago: metodoPago, estado: 'pendiente' },
+    })
+
     // 2. Insertar los items del pedido
     const itemsPayload = items.map(i => ({
       id_pedido: pedido.id,
