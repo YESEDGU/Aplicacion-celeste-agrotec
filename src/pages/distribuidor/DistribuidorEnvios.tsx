@@ -212,28 +212,40 @@ export default function DistribuidorEnvios() {
   useEffect(() => { cargar() }, [perfil])
 
   const cambiarEstado = async (id: number, estado: EstadoEnvio) => {
-    const updates: Record<string, unknown> = { estado }
-    if (estado === 'en_camino') updates.fecha_envio = new Date().toISOString()
-    if (estado === 'entregado') updates.fecha_entrega = new Date().toISOString()
+  const updates: Record<string, unknown> = { estado }
+  if (estado === 'en_camino') updates.fecha_envio = new Date().toISOString()
+  if (estado === 'entregado') updates.fecha_entrega = new Date().toISOString()
 
-    await supabase.from('envios').update(updates).eq('id', id)
+  const envio = envios.find(e => e.id === id)
 
-    // Sincronizar estado del pedido
-    await supabase.rpc('sincronizar_estado_pedido', {
-      p_envio_id: id,
-      p_estado_envio: estado,
-    })
+  await supabase.from('envios').update(updates).eq('id', id)
 
-    // Si se entrega, aprobar el pago
+  // Sincronizar estado del pedido
+  await supabase.rpc('sincronizar_estado_pedido', {
+    p_envio_id: id,
+    p_estado_envio: estado,
+  })
+
+  // Si se entrega, aprobar el pago
   if (estado === 'entregado') {
-    const envio = envios.find(e => e.id === id)
     if (envio?.pedidos?.id) {
       await supabase.rpc('aprobar_pago_pedido', { p_pedido_id: envio.pedidos.id })
     }
   }
 
-    await cargar()
-  }
+  // Registrar en auditoría
+  await supabase.rpc('registrar_auditoria', {
+    p_responsable: perfil?.usuario ?? 'Distribuidor',
+    p_id_usuario: perfil?.id ?? null,
+    p_accion: 'cambiar_estado',
+    p_tabla: 'envios',
+    p_id_registro: id,
+    p_valor_anterior: { estado: envio?.estado },
+    p_valor_nuevo: { estado },
+  })
+
+  await cargar()
+}
 
   const filtrados = filtro === 'todos' ? envios : envios.filter(e => e.estado === filtro)
 
