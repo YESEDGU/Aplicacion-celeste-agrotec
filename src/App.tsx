@@ -18,6 +18,7 @@ import WorkWithUs from "./pages/WorkWithUs";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DistribuidorDashboard from "./pages/distribuidor/DistribuidorDashboard";
+import Perfil from "./pages/Perfil";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ function AppRoutes() {
         <Route path="/contactos" element={<Contact />} />
         <Route path="/trabaja-con-nosotros" element={<WorkWithUs />} />
         <Route path="/mis-pedidos" element={<MisPedidos />} />
+        <Route path="/perfil" element={<Perfil />} />
       </Route>
 
       {/* Admin */}
