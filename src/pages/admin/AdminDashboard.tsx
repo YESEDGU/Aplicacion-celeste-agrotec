@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, Users, ShoppingBag,
-  LogOut, Menu, X, ChevronRight, Egg, Truck, Mail, UserPlus
+  LogOut, Menu, X, ChevronRight, Egg, Truck, Mail, UserPlus, Shield
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -17,6 +17,7 @@ import AdminPedidos from './AdminPedidos'
 import AdminDistribuidores from './AdminDistribuidores'
 import AdminContactos from './AdminContactos'
 import AdminSolicitudes from './AdminSolicitudes'
+import AdminAuditoria from './AdminAuditoria'
 
 // ── Tarjeta de resumen ────────────────────────────────────────
 function TarjetaResumen({
@@ -105,6 +106,7 @@ function AdminInicio() {
             { label: 'Gestionar productos', href: '/admin/productos', color: 'text-green-600 bg-green-50 hover:bg-green-100' },
             { label: 'Ver usuarios', href: '/admin/usuarios', color: 'text-blue-600 bg-blue-50 hover:bg-blue-100' },
             { label: 'Ver pedidos', href: '/admin/pedidos', color: 'text-amber-600 bg-amber-50 hover:bg-amber-100' },
+            { label: 'Auditoría', href: '/admin/auditoria', color: 'text-purple-600 bg-purple-50 hover:bg-purple-100' },
           ].map(item => (
             <NavLink
               key={item.href}
@@ -135,6 +137,7 @@ export default function AdminDashboard() {
     { to: '/admin/distribuidores', label: 'Distribuidores', icon: <Truck className="w-4 h-4" /> },
     { to: '/admin/contactos', label: 'Mensajes', icon: <Mail className="w-4 h-4" /> },
     { to: '/admin/solicitudes', label: 'Solicitudes', icon: <UserPlus className="w-4 h-4" /> },
+    { to: '/admin/auditoria', label: 'Auditoría', icon: <Shield className="w-4 h-4" /> },
   ]
 
   const handleSignOut = async () => {
@@ -233,6 +236,7 @@ export default function AdminDashboard() {
             <Route path="distribuidores" element={<AdminDistribuidores />} />
             <Route path="contactos" element={<AdminContactos />} />
             <Route path="solicitudes" element={<AdminSolicitudes />} />
+            <Route path="auditoria" element={<AdminAuditoria />} />
           </Routes>
         </main>
       </div>
