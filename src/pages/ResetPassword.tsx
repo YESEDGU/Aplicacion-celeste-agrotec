@@ -28,13 +28,20 @@ const ResetPassword = () => {
   // Supabase redirige con tokens en el hash (#access_token=...&type=recovery)
   // onAuthStateChange los detecta automáticamente
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setSesionLista(true)
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [])
+  // Procesar el hash de la URL manualmente
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      setSesionLista(true)
+    }
+  })
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+      setSesionLista(true)
+    }
+  })
+  return () => subscription.unsubscribe()
+}, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
