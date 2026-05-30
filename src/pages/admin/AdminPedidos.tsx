@@ -87,35 +87,44 @@ export default function AdminPedidos() {
 }
 
   const asignarDistribuidor = async (pedido: PedidoConPerfil, idDistribuidor: string) => {
-    setAsignando(pedido.id)
-    const envio = pedido.envios?.[0]
+  setAsignando(pedido.id)
+  const envio = pedido.envios?.[0]
+  const distNombre = distribuidores.find(d => d.id === parseInt(idDistribuidor))?.nombre ?? 'Sin asignar'
 
-    if (envio) {
-      // Actualizar envío existente
-      await supabase
-        .from('envios')
-        .update({ id_distribuidor: idDistribuidor ? parseInt(idDistribuidor) : null })
-        .eq('id', envio.id)
-    } else {
-      // Crear envío si no existe
-      await supabase.from('envios').insert({
-        id_pedido: pedido.id,
-        id_distribuidor: idDistribuidor ? parseInt(idDistribuidor) : null,
-        estado: 'preparando',
-      })
-    }
-
-    // Si se asigna distribuidor, cambiar pedido a en_proceso automáticamente
-    if (idDistribuidor && pedido.estado === 'pendiente') {
-      await supabase.from('pedidos').update({
-        estado: 'en_proceso',
-        fecha_actualiza: new Date().toISOString(),
-      }).eq('id', pedido.id)
-    }
-
-    await cargar()
-    setAsignando(null)
+  if (envio) {
+    await supabase
+      .from('envios')
+      .update({ id_distribuidor: idDistribuidor ? parseInt(idDistribuidor) : null })
+      .eq('id', envio.id)
+  } else {
+    await supabase.from('envios').insert({
+      id_pedido: pedido.id,
+      id_distribuidor: idDistribuidor ? parseInt(idDistribuidor) : null,
+      estado: 'preparando',
+    })
   }
+
+  if (idDistribuidor && pedido.estado === 'pendiente') {
+    await supabase.from('pedidos').update({
+      estado: 'en_proceso',
+      fecha_actualiza: new Date().toISOString(),
+    }).eq('id', pedido.id)
+  }
+
+  // Registrar en auditoría
+  await supabase.rpc('registrar_auditoria', {
+    p_responsable: perfil?.usuario ?? 'Admin',
+    p_id_usuario: perfil?.id ?? null,
+    p_accion: 'modificar',
+    p_tabla: 'envios',
+    p_id_registro: pedido.id,
+    p_valor_anterior: { id_distribuidor: envio?.id_distribuidor ?? null },
+    p_valor_nuevo: { id_distribuidor: idDistribuidor ? parseInt(idDistribuidor) : null, distribuidor: distNombre },
+  })
+
+  await cargar()
+  setAsignando(null)
+}
 
   const filtrados = pedidos.filter(p => {
     const coincideEstado = filtroEstado === 'todos' || p.estado === filtroEstado
