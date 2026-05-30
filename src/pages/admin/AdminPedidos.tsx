@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { Loader2, ShoppingBag, Search, Truck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import type { Pedido, Distribuidor } from '@/types/database'
+import { useAuth } from '@/context/AuthContext'
 
 type EstadoPedido = 'pendiente' | 'en_proceso' | 'entregado' | 'cancelado'
 
@@ -38,6 +39,7 @@ interface PedidoConPerfil extends Pedido {
 export default function AdminPedidos() {
   const [pedidos, setPedidos] = useState<PedidoConPerfil[]>([])
   const [distribuidores, setDistribuidores] = useState<Distribuidor[]>([])
+  const { perfil } = useAuth()
   const [loading, setLoading] = useState(true)
   const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | 'todos'>('todos')
   const [busqueda, setBusqueda] = useState('')
@@ -65,11 +67,24 @@ export default function AdminPedidos() {
   useEffect(() => { cargar() }, [])
 
   const cambiarEstado = async (id: number, estado: EstadoPedido) => {
-    setCambiando(id)
-    await supabase.from('pedidos').update({ estado, fecha_actualiza: new Date().toISOString() }).eq('id', id)
-    await cargar()
-    setCambiando(null)
-  }
+  setCambiando(id)
+  const pedido = pedidos.find(p => p.id === id)
+
+  await supabase.from('pedidos').update({ estado, fecha_actualiza: new Date().toISOString() }).eq('id', id)
+
+  await supabase.rpc('registrar_auditoria', {
+    p_responsable: perfil?.usuario ?? 'Admin',
+    p_id_usuario: perfil?.id ?? null,
+    p_accion: 'cambiar_estado',
+    p_tabla: 'pedidos',
+    p_id_registro: id,
+    p_valor_anterior: { estado: pedido?.estado },
+    p_valor_nuevo: { estado },
+  })
+
+  await cargar()
+  setCambiando(null)
+}
 
   const asignarDistribuidor = async (pedido: PedidoConPerfil, idDistribuidor: string) => {
     setAsignando(pedido.id)
